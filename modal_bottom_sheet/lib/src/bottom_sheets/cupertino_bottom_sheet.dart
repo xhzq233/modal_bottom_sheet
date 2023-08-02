@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart'
     show
-        CupertinoApp,
         CupertinoColors,
         CupertinoDynamicColor,
         CupertinoTheme,
@@ -18,8 +17,7 @@ import 'package:flutter/material.dart'
         Colors,
         MaterialLocalizations,
         Theme,
-        ThemeData,
-        debugCheckHasMaterialLocalizations;
+        ThemeData;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -398,133 +396,5 @@ class _CupertinoModalTransition extends StatelessWidget {
     }
 
     return previousRouteTheme;
-  }
-}
-
-class CupertinoScaffoldInheirted extends InheritedWidget {
-  final AnimationController? animation;
-
-  final Radius? topRadius;
-  final Color transitionBackgroundColor;
-
-  const CupertinoScaffoldInheirted({
-    this.animation,
-    required super.child,
-    this.topRadius,
-    required this.transitionBackgroundColor,
-  }) : super();
-
-  @override
-  bool updateShouldNotify(InheritedWidget oldWidget) {
-    return false;
-  }
-}
-
-// Support
-class CupertinoScaffold extends StatefulWidget {
-  static CupertinoScaffoldInheirted? of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<CupertinoScaffoldInheirted>();
-
-  final Widget body;
-  final Radius topRadius;
-  final Color transitionBackgroundColor;
-  final SystemUiOverlayStyle? overlayStyle;
-
-  const CupertinoScaffold({
-    Key? key,
-    required this.body,
-    this.topRadius = _kDefaultTopRadius,
-    this.transitionBackgroundColor = Colors.black,
-    this.overlayStyle,
-  }) : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => _CupertinoScaffoldState();
-
-  static Future<T?> showCupertinoModalBottomSheet<T>({
-    required BuildContext context,
-    double? closeProgressThreshold,
-    required WidgetBuilder builder,
-    Curve? animationCurve,
-    Curve? previousRouteAnimationCurve,
-    Color? backgroundColor,
-    Color? barrierColor,
-    bool expand = false,
-    bool useRootNavigator = false,
-    bool bounce = true,
-    bool? isDismissible,
-    bool enableDrag = true,
-    Duration? duration,
-    RouteSettings? settings,
-    BoxShadow? shadow,
-    @Deprecated(
-      'Will be ignored. OverlayStyle is computed from luminance of transitionBackgroundColor',
-    )
-    SystemUiOverlayStyle? overlayStyle,
-  }) async {
-    assert(debugCheckHasMediaQuery(context));
-    final isCupertinoApp =
-        context.findAncestorWidgetOfExactType<CupertinoApp>() != null;
-    var barrierLabel = '';
-    if (!isCupertinoApp) {
-      assert(debugCheckHasMaterialLocalizations(context));
-      barrierLabel = MaterialLocalizations.of(context).modalBarrierDismissLabel;
-    }
-    final topRadius = CupertinoScaffold.of(context)!.topRadius;
-    final transitionBackgroundColor =
-        CupertinoScaffold.of(context)!.transitionBackgroundColor;
-    final overlayStyle = overlayStyleFromColor(transitionBackgroundColor);
-    final result = await Navigator.of(context, rootNavigator: useRootNavigator)
-        .push(CupertinoModalBottomSheetRoute<T>(
-      closeProgressThreshold: closeProgressThreshold,
-      builder: builder,
-      secondAnimationController: CupertinoScaffold.of(context)!.animation,
-      containerBuilder: (context, _, child) => _CupertinoBottomSheetContainer(
-        child: child,
-        backgroundColor: backgroundColor,
-        topRadius: topRadius ?? _kDefaultTopRadius,
-        shadow: shadow,
-        overlayStyle: overlayStyle,
-      ),
-      expanded: expand,
-      barrierLabel: barrierLabel,
-      bounce: bounce,
-      isDismissible: isDismissible ?? expand == false ? true : false,
-      modalBarrierColor: barrierColor ?? Colors.black12,
-      enableDrag: enableDrag,
-      topRadius: topRadius ?? _kDefaultTopRadius,
-      animationCurve: animationCurve,
-      previousRouteAnimationCurve: previousRouteAnimationCurve,
-      duration: duration,
-      settings: settings,
-    ));
-    return result;
-  }
-}
-
-class _CupertinoScaffoldState extends State<CupertinoScaffold>
-    with TickerProviderStateMixin {
-  late AnimationController animationController;
-
-  @override
-  void initState() {
-    animationController =
-        AnimationController(duration: Duration(milliseconds: 350), vsync: this);
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CupertinoScaffoldInheirted(
-      animation: animationController,
-      topRadius: widget.topRadius,
-      transitionBackgroundColor: widget.transitionBackgroundColor,
-      child: _CupertinoModalTransition(
-        secondaryAnimation: animationController,
-        body: widget.body,
-        topRadius: widget.topRadius,
-        backgroundColor: widget.transitionBackgroundColor,
-      ),
-    );
   }
 }
