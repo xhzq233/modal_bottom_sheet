@@ -226,17 +226,13 @@ class CupertinoModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
     final distanceWithScale = (paddingTop + _kPreviousPageVisibleOffset) * 0.9;
     final offsetY = secondaryAnimation.value * (paddingTop - distanceWithScale);
     final scale = 1 - secondaryAnimation.value / 10;
-    return AnimatedBuilder(
-      builder: (context, child) => Transform.translate(
-        offset: Offset(0, offsetY),
-        child: Transform.scale(
-          scale: scale,
-          child: child,
-          alignment: Alignment.topCenter,
-        ),
+    return Transform.translate(
+      offset: Offset(0, offsetY),
+      child: Transform.scale(
+        scale: scale,
+        child: child,
+        alignment: Alignment.topCenter,
       ),
-      child: child,
-      animation: secondaryAnimation,
     );
   }
 
