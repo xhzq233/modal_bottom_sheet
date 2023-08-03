@@ -119,6 +119,7 @@ Future<T?> showCupertinoModalBottomSheet<T>({
   BoxShadow? shadow,
   SystemUiOverlayStyle? overlayStyle,
   double? closeProgressThreshold,
+  bool insideNavigator = false,
 }) async {
   assert(debugCheckHasMediaQuery(context));
   final hasMaterialLocalizations =
@@ -131,6 +132,7 @@ Future<T?> showCupertinoModalBottomSheet<T>({
       await Navigator.of(context, rootNavigator: useRootNavigator).push(
     CupertinoModalBottomSheetRoute<T>(
         builder: builder,
+        insideNavigator: insideNavigator,
         containerBuilder: (context, _, child) => _CupertinoBottomSheetContainer(
               child: child,
               backgroundColor: backgroundColor,
@@ -198,6 +200,7 @@ class CupertinoModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
     this.topRadius = _kDefaultTopRadius,
     this.previousRouteAnimationCurve,
     this.overlayStyle,
+    super.insideNavigator,
   }) : super(
           closeProgressThreshold: closeProgressThreshold,
           scrollController: scrollController,

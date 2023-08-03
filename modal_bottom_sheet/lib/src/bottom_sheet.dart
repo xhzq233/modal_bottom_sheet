@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:modal_bottom_sheet/src/utils/scroll_to_top_status_bar.dart';
 
 import 'package:modal_bottom_sheet/src/utils/bottom_sheet_suspended_curve.dart';
@@ -47,6 +49,7 @@ class ModalBottomSheet extends StatefulWidget {
     this.minFlingVelocity = _minFlingVelocity,
     double? closeProgressThreshold,
     this.willPopThreshold = _willPopThreshold,
+    required this.insideNavigator,
   })  : closeProgressThreshold =
             closeProgressThreshold ?? _closeProgressThreshold,
         super(key: key);
@@ -111,6 +114,9 @@ class ModalBottomSheet extends StatefulWidget {
   /// The willPopThreshold parameter
   /// Determines how far the sheet should be flinged before closing.
   final double willPopThreshold;
+
+  // If true, the bottom sheet will create an inside Navigator
+  final bool insideNavigator;
 
   @override
   ModalBottomSheetState createState() => ModalBottomSheetState();
@@ -339,6 +345,7 @@ class ModalBottomSheetState extends State<ModalBottomSheet>
   }
 
   Curve get _defaultCurve => widget.animationCurve ?? _decelerateEasing;
+  GlobalKey<NavigatorState>? _navigatorKey;
 
   @override
   void initState() {
@@ -346,8 +353,26 @@ class ModalBottomSheetState extends State<ModalBottomSheet>
     _bounceDragController =
         AnimationController(vsync: this, duration: Duration(milliseconds: 300));
 
+    if (widget.insideNavigator) {
+      _navigatorKey ??= GlobalKey<NavigatorState>();
+      fakeBackButtonDispatcher.addListener(onWillPop);
+    }
+
     // Todo: Check if we can remove scroll Controller
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (widget.insideNavigator) {
+      fakeBackButtonDispatcher.removeListener(onWillPop);
+    }
+    _bounceDragController.dispose();
+    super.dispose();
+  }
+
+  Future<bool> onWillPop() {
+    return _navigatorKey?.currentState?.maybePop() ?? Future.value(false);
   }
 
   @override
@@ -357,7 +382,20 @@ class ModalBottomSheetState extends State<ModalBottomSheet>
       curve: Curves.easeOutSine,
     );
 
-    var child = widget.child;
+    Widget child;
+
+    if (widget.insideNavigator) {
+      child = Navigator(
+        key: _navigatorKey,
+        observers: [HeroController()],
+        onGenerateRoute: (_) => MaterialPageRoute(
+          builder: (context) => widget.child,
+        ),
+      );
+    } else {
+      child = widget.child;
+    }
+
     if (widget.containerBuilder != null) {
       child = widget.containerBuilder!(
         context,

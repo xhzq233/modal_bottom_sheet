@@ -112,6 +112,7 @@ class _ModalBottomSheetState<T> extends State<_ModalBottomSheet<T>> {
                 bounce: widget.bounce,
                 scrollController: scrollController,
                 animationCurve: widget.animationCurve,
+                insideNavigator: widget.route.insideNavigator,
               ),
             );
           },
@@ -138,6 +139,7 @@ class ModalSheetRoute<T> extends PageRoute<T> {
     this.animationCurve,
     Duration? duration,
     RouteSettings? settings,
+    this.insideNavigator = false,
   })  : duration = duration ?? _bottomSheetDuration,
         super(settings: settings);
 
@@ -150,7 +152,7 @@ class ModalSheetRoute<T> extends PageRoute<T> {
   final bool isDismissible;
   final bool enableDrag;
   final ScrollController? scrollController;
-
+  final bool insideNavigator;
   final Duration duration;
 
   final AnimationController? secondAnimationController;
@@ -246,6 +248,7 @@ Future<T?> showCustomModalBottomSheet<T>({
   Duration? duration,
   RouteSettings? settings,
   double? closeProgressThreshold,
+  bool insideNavigator = false,
 }) async {
   assert(debugCheckHasMediaQuery(context));
   assert(debugCheckHasMaterialLocalizations(context));
@@ -271,6 +274,7 @@ Future<T?> showCustomModalBottomSheet<T>({
     duration: duration,
     settings: settings,
     closeProgressThreshold: closeProgressThreshold,
+    insideNavigator: insideNavigator,
   ));
   return result;
 }
