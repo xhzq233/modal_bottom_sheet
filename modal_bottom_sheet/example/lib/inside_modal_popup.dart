@@ -4,7 +4,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  fakeBackButtonDispatcher.init();
+  ModalBackButtonDispatcher.instance.init();
   runApp(const MyApp());
 }
 

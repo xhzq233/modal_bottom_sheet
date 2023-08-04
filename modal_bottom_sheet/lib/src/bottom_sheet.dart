@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -355,7 +354,7 @@ class ModalBottomSheetState extends State<ModalBottomSheet>
 
     if (widget.insideNavigator) {
       _navigatorKey ??= GlobalKey<NavigatorState>();
-      fakeBackButtonDispatcher.addListener(onWillPop);
+      ModalBackButtonDispatcher.instance.addListener(onWillPop);
     }
 
     // Todo: Check if we can remove scroll Controller
@@ -365,7 +364,7 @@ class ModalBottomSheetState extends State<ModalBottomSheet>
   @override
   void dispose() {
     if (widget.insideNavigator) {
-      fakeBackButtonDispatcher.removeListener(onWillPop);
+      ModalBackButtonDispatcher.instance.removeListener(onWillPop);
     }
     _bounceDragController.dispose();
     super.dispose();

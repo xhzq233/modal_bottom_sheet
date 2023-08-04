@@ -1,15 +1,17 @@
 import 'package:flutter/cupertino.dart';
 
-final fakeBackButtonDispatcher = FakeBackButtonDispatcher._();
-
-class FakeBackButtonDispatcher with WidgetsBindingObserver {
+class ModalBackButtonDispatcher with WidgetsBindingObserver {
   final Set<Future<bool> Function()> _listeners = {};
 
-  FakeBackButtonDispatcher._() {
+  static final ModalBackButtonDispatcher instance =
+      ModalBackButtonDispatcher._();
+
+  ModalBackButtonDispatcher._() {
     WidgetsBinding.instance.addObserver(this);
   }
 
-  /// to activate [FakeBackButtonDispatcher]
+  /// To activate [ModalBackButtonDispatcher].
+  /// Must init before app start.
   void init() {}
 
   void addListener(Future<bool> Function() listener) {
