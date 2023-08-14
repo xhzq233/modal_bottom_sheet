@@ -26,7 +26,7 @@ class ModalInsideModal extends StatelessWidget {
                 100,
                 (index) => ListTile(
                     title: Text('Item $index'),
-                    onTap: () => showCupertinoModalBottomSheet(
+                    onTap: () => showStackModalBottomSheet(
                           expand: true,
                           isDismissible: false,
                           context: context,

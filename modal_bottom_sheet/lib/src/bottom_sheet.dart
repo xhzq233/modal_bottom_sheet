@@ -29,7 +29,7 @@ typedef WidgetWithChildBuilder = Widget Function(
 ///
 ///  * [showMaterialModalBottomSheet] which can be used to display a modal bottom
 ///    sheet with Material appareance.
-///  * [showCupertinoModalBottomSheet] which can be used to display a modal bottom
+///  * [showStackModalBottomSheet] which can be used to display a modal bottom
 ///    sheet with Cupertino appareance.
 class ModalBottomSheet extends StatefulWidget {
   /// Creates a bottom sheet.
@@ -44,13 +44,15 @@ class ModalBottomSheet extends StatefulWidget {
     required this.scrollController,
     required this.expanded,
     required this.onClosing,
-    required this.child,
+    this.child,
     this.minFlingVelocity = _minFlingVelocity,
     double? closeProgressThreshold,
     this.willPopThreshold = _willPopThreshold,
     required this.insideNavigator,
+    this.insidePageRoute,
   })  : closeProgressThreshold =
             closeProgressThreshold ?? _closeProgressThreshold,
+        assert(child != null || insidePageRoute != null),
         super(key: key);
 
   /// The closeProgressThreshold parameter
@@ -96,7 +98,7 @@ class ModalBottomSheet extends StatefulWidget {
 
   /// A builder for the contents of the sheet.
   ///
-  final Widget child;
+  final Widget? child;
 
   /// If true, the bottom sheet can be dragged up and down and dismissed by
   /// swiping downwards.
@@ -116,6 +118,8 @@ class ModalBottomSheet extends StatefulWidget {
 
   // If true, the bottom sheet will create an inside Navigator
   final bool insideNavigator;
+
+  final PageRoute<dynamic>? insidePageRoute;
 
   @override
   ModalBottomSheetState createState() => ModalBottomSheetState();
@@ -387,12 +391,12 @@ class ModalBottomSheetState extends State<ModalBottomSheet>
       child = Navigator(
         key: _navigatorKey,
         observers: [HeroController()],
-        onGenerateRoute: (_) => MaterialPageRoute(
-          builder: (context) => widget.child,
-        ),
+        onGenerateRoute: (_) =>
+            widget.insidePageRoute ??
+            MaterialPageRoute(builder: (context) => widget.child!),
       );
     } else {
-      child = widget.child;
+      child = widget.child!;
     }
 
     if (widget.containerBuilder != null) {

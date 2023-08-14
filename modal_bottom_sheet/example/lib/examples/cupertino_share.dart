@@ -70,7 +70,7 @@ class CupertinoSharePage extends StatelessWidget {
               size: 28,
             ),
             onPressed: () {
-              showCupertinoModalBottomSheet(
+              showStackModalBottomSheet(
                 expand: true,
                 context: context,
                 backgroundColor: Colors.transparent,

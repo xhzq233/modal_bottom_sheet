@@ -4,12 +4,9 @@
 
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart'
-    show
-        CupertinoTheme;
+import 'package:flutter/cupertino.dart' show CupertinoTheme;
 import 'package:flutter/material.dart'
     show Colors, MaterialLocalizations, Theme;
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../modal_bottom_sheet.dart';
@@ -25,19 +22,17 @@ const BoxShadow _kDefaultBoxShadow =
 /// Clip the child widget to rectangle with top rounded corners and adds
 /// top padding(+safe area padding). This padding [_kPreviousPageVisibleOffset]
 /// is the height that will be displayed from previous route.
-class _CupertinoBottomSheetContainer extends StatelessWidget {
+class _StackModalBottomSheetContainer extends StatelessWidget {
   final Widget child;
   final Color? backgroundColor;
   final Radius topRadius;
   final BoxShadow? shadow;
-  final SystemUiOverlayStyle? overlayStyle;
 
-  const _CupertinoBottomSheetContainer({
+  const _StackModalBottomSheetContainer({
     Key? key,
     required this.child,
     this.backgroundColor,
     required this.topRadius,
-    this.overlayStyle,
     this.shadow,
   }) : super(key: key);
 
@@ -71,9 +66,9 @@ class _CupertinoBottomSheetContainer extends StatelessWidget {
   }
 }
 
-Future<T?> showCupertinoModalBottomSheet<T>({
+Future<T?> showStackModalBottomSheet<T>({
   required BuildContext context,
-  required WidgetBuilder builder,
+  WidgetBuilder? builder,
   Color? backgroundColor,
   double? elevation,
   ShapeBorder? shape,
@@ -92,11 +87,12 @@ Future<T?> showCupertinoModalBottomSheet<T>({
   RouteSettings? settings,
   Color? transitionBackgroundColor,
   BoxShadow? shadow,
-  SystemUiOverlayStyle? overlayStyle,
   double? closeProgressThreshold,
   bool insideNavigator = false,
+  PageRoute? insidePageRoute,
 }) async {
   assert(debugCheckHasMediaQuery(context));
+  assert(insidePageRoute != null || builder != null);
   final hasMaterialLocalizations =
       Localizations.of<MaterialLocalizations>(context, MaterialLocalizations) !=
           null;
@@ -105,39 +101,39 @@ Future<T?> showCupertinoModalBottomSheet<T>({
       : '';
   final result =
       await Navigator.of(context, rootNavigator: useRootNavigator).push(
-    CupertinoModalBottomSheetRoute<T>(
-        builder: builder,
-        insideNavigator: insideNavigator,
-        containerBuilder: (context, _, child) => _CupertinoBottomSheetContainer(
-              child: child,
-              backgroundColor: backgroundColor,
-              topRadius: topRadius,
-              shadow: shadow,
-              overlayStyle: overlayStyle,
-            ),
-        secondAnimationController: secondAnimation,
-        expanded: expand,
-        closeProgressThreshold: closeProgressThreshold,
-        barrierLabel: barrierLabel,
-        elevation: elevation,
-        bounce: bounce,
-        shape: shape,
-        clipBehavior: clipBehavior,
-        isDismissible: isDismissible ?? expand == false ? true : false,
-        modalBarrierColor: barrierColor ?? Colors.black12,
-        enableDrag: enableDrag,
+    StackModalBottomSheetRoute<T>(
+      builder: builder,
+      insideNavigator: insideNavigator,
+      insidePageRoute: insidePageRoute,
+      containerBuilder: (context, _, child) => _StackModalBottomSheetContainer(
+        child: child,
+        backgroundColor: backgroundColor,
         topRadius: topRadius,
-        animationCurve: animationCurve,
-        previousRouteAnimationCurve: previousRouteAnimationCurve,
-        duration: duration,
-        settings: settings,
-        transitionBackgroundColor: transitionBackgroundColor ?? Colors.black,
-        overlayStyle: overlayStyle),
+        shadow: shadow,
+      ),
+      secondAnimationController: secondAnimation,
+      expanded: expand,
+      closeProgressThreshold: closeProgressThreshold,
+      barrierLabel: barrierLabel,
+      elevation: elevation,
+      bounce: bounce,
+      shape: shape,
+      clipBehavior: clipBehavior,
+      isDismissible: isDismissible ?? expand == false ? true : false,
+      modalBarrierColor: barrierColor ?? Colors.black12,
+      enableDrag: enableDrag,
+      topRadius: topRadius,
+      animationCurve: animationCurve,
+      previousRouteAnimationCurve: previousRouteAnimationCurve,
+      duration: duration,
+      settings: settings,
+      transitionBackgroundColor: transitionBackgroundColor ?? Colors.black,
+    ),
   );
   return result;
 }
 
-class CupertinoModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
+class StackModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
   final Radius topRadius;
 
   final Curve? previousRouteAnimationCurve;
@@ -147,13 +143,8 @@ class CupertinoModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
   // Background color behind all routes
   // Black by default
   final Color? transitionBackgroundColor;
-  @Deprecated(
-    'Will be ignored. OverlayStyle is computed from luminance of transitionBackgroundColor',
-  )
-  final SystemUiOverlayStyle? overlayStyle;
 
-  CupertinoModalBottomSheetRoute({
-    required WidgetBuilder builder,
+  StackModalBottomSheetRoute({
     WidgetWithChildBuilder? containerBuilder,
     double? closeProgressThreshold,
     String? barrierLabel,
@@ -174,13 +165,13 @@ class CupertinoModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
     this.transitionBackgroundColor,
     this.topRadius = _kDefaultTopRadius,
     this.previousRouteAnimationCurve,
-    this.overlayStyle,
     super.insideNavigator,
+    super.insidePageRoute,
+    super.builder,
   }) : super(
           closeProgressThreshold: closeProgressThreshold,
           scrollController: scrollController,
           containerBuilder: containerBuilder,
-          builder: builder,
           bounce: bounce,
           barrierLabel: barrierLabel,
           secondAnimationController: secondAnimationController,
@@ -200,6 +191,16 @@ class CupertinoModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
+    if (!secondaryAnimation.isDismissed) {
+      // performance optimization
+      return buildSecondaryTransition(context, secondaryAnimation, child);
+    }
+    return super
+        .buildTransitions(context, animation, secondaryAnimation, child);
+  }
+
+  static Widget buildSecondaryTransition(BuildContext context,
+      Animation<double> secondaryAnimation, Widget child) {
     final paddingTop = MediaQuery.of(context).padding.top;
     final distanceWithScale = (paddingTop + _kPreviousPageVisibleOffset) * 0.9;
     final offsetY = secondaryAnimation.value * (paddingTop - distanceWithScale);

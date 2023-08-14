@@ -83,7 +83,6 @@ class _ModalBottomSheetState<T> extends State<_ModalBottomSheet<T>> {
         builder: (context) => AnimatedBuilder(
           animation: widget.route._animationController!,
           builder: (BuildContext context, final Widget? child) {
-            assert(child != null);
             // Disable the initial animation when accessible navigation is on so
             // that the semantics are added to the tree at the correct time.
             return Semantics(
@@ -107,16 +106,17 @@ class _ModalBottomSheetState<T> extends State<_ModalBottomSheet<T>> {
                     Navigator.of(context).pop();
                   }
                 },
-                child: child!,
+                child: child,
                 enableDrag: widget.enableDrag,
                 bounce: widget.bounce,
                 scrollController: scrollController,
                 animationCurve: widget.animationCurve,
                 insideNavigator: widget.route.insideNavigator,
+                insidePageRoute: widget.route.insidePageRoute,
               ),
             );
           },
-          child: widget.route.builder(context),
+          child: widget.route.builder?.call(context),
         ),
       ),
     );
@@ -127,7 +127,7 @@ class ModalSheetRoute<T> extends PageRoute<T> {
   ModalSheetRoute({
     this.closeProgressThreshold,
     this.containerBuilder,
-    required this.builder,
+    this.builder,
     this.scrollController,
     this.barrierLabel,
     this.secondAnimationController,
@@ -140,12 +140,15 @@ class ModalSheetRoute<T> extends PageRoute<T> {
     Duration? duration,
     RouteSettings? settings,
     this.insideNavigator = false,
+    this.insidePageRoute,
   })  : duration = duration ?? _bottomSheetDuration,
+        assert(insidePageRoute != null || builder != null),
         super(settings: settings);
 
   final double? closeProgressThreshold;
   final WidgetWithChildBuilder? containerBuilder;
-  final WidgetBuilder builder;
+  final WidgetBuilder? builder;
+  final PageRoute? insidePageRoute;
   final bool expanded;
   final bool bounce;
   final Color? modalBarrierColor;
@@ -249,6 +252,7 @@ Future<T?> showCustomModalBottomSheet<T>({
   RouteSettings? settings,
   double? closeProgressThreshold,
   bool insideNavigator = false,
+  PageRoute? insidePageRoute,
 }) async {
   assert(debugCheckHasMediaQuery(context));
   assert(debugCheckHasMaterialLocalizations(context));
@@ -275,6 +279,7 @@ Future<T?> showCustomModalBottomSheet<T>({
     settings: settings,
     closeProgressThreshold: closeProgressThreshold,
     insideNavigator: insideNavigator,
+    insidePageRoute: insidePageRoute,
   ));
   return result;
 }

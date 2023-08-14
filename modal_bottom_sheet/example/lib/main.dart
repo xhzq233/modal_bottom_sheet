@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
                   middle: Text('Normal Navigation Presentation'),
                   trailing: GestureDetector(
                     child: Icon(Icons.arrow_upward),
-                    onTap: () => showCupertinoModalBottomSheet(
+                    onTap: () => showStackModalBottomSheet(
                       expand: true,
                       context: context,
                       backgroundColor: Colors.transparent,
@@ -153,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     ListTile(
                       title: Text('Cupertino Modal fit'),
-                      onTap: () => showCupertinoModalBottomSheet(
+                      onTap: () => showStackModalBottomSheet(
                         expand: false,
                         context: context,
                         backgroundColor: Colors.transparent,
@@ -163,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     section('COMPLEX CASES'),
                     ListTile(
                         title: Text('Cupertino Small Modal forced to expand'),
-                        onTap: () => showCupertinoModalBottomSheet(
+                        onTap: () => showStackModalBottomSheet(
                               expand: true,
                               context: context,
                               backgroundColor: Colors.transparent,
@@ -171,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             )),
                     ListTile(
                       title: Text('Reverse list'),
-                      onTap: () => showCupertinoModalBottomSheet(
+                      onTap: () => showStackModalBottomSheet(
                         expand: true,
                         context: context,
                         backgroundColor: Colors.transparent,
@@ -180,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     ListTile(
                       title: Text('Cupertino Modal inside modal'),
-                      onTap: () => showCupertinoModalBottomSheet(
+                      onTap: () => showStackModalBottomSheet(
                         expand: true,
                         context: context,
                         backgroundColor: Colors.transparent,
@@ -189,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     ListTile(
                         title: Text('Cupertino Modal with inside navigation'),
-                        onTap: () => showCupertinoModalBottomSheet(
+                        onTap: () => showStackModalBottomSheet(
                               expand: true,
                               context: context,
                               backgroundColor: Colors.transparent,
@@ -198,7 +198,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ListTile(
                       title:
                           Text('Cupertino Navigator + Scroll + WillPopScope'),
-                      onTap: () => showCupertinoModalBottomSheet(
+                      onTap: () => showStackModalBottomSheet(
                         expand: true,
                         context: context,
                         backgroundColor: Colors.transparent,
@@ -207,7 +207,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     ListTile(
                       title: Text('Modal with WillPopScope'),
-                      onTap: () => showCupertinoModalBottomSheet(
+                      onTap: () => showStackModalBottomSheet(
                         expand: true,
                         context: context,
                         backgroundColor: Colors.transparent,
@@ -216,7 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     ListTile(
                       title: Text('Modal with Nested Scroll'),
-                      onTap: () => showCupertinoModalBottomSheet(
+                      onTap: () => showStackModalBottomSheet(
                         expand: true,
                         context: context,
                         builder: (context) => NestedScrollModal(),
@@ -224,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     ListTile(
                       title: Text('Modal with PageView'),
-                      onTap: () => showCupertinoModalBottomSheet(
+                      onTap: () => showStackModalBottomSheet(
                         expand: true,
                         context: context,
                         builder: (context) => ModalWithPageView(),

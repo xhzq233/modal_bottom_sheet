@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     GestureDetector(
-                      onTap: () => showCupertinoModalBottomSheet(
+                      onTap: () => showStackModalBottomSheet(
                         context: ctx,
                         builder: (ctx) => secondPage(ctx),
                       ),
@@ -84,7 +84,7 @@ class MyApp extends StatelessWidget {
             color: Colors.white,
             child: Align(
               child: GestureDetector(
-                onTap: () => showCupertinoModalBottomSheet(
+                onTap: () => showStackModalBottomSheet(
                   context: ctx,
                   builder: (ctx) => secondPage(ctx),
                   insideNavigator: true,

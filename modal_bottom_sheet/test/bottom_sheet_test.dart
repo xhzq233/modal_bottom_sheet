@@ -42,10 +42,10 @@ void main() {
         expect(dispose, 1);
       }
 
-      testWidgets('with showCupertinoModalBottomSheet', (tester) {
+      testWidgets('with showStackModalBottomSheet', (tester) {
         return testInitStateAndDispose(
           tester,
-          (context, builder) => showCupertinoModalBottomSheet(
+          (context, builder) => showStackModalBottomSheet(
             context: context,
             builder: builder,
           ),
