@@ -5,6 +5,13 @@ import 'package:flutter/services.dart';
 import '../modal_bottom_sheet.dart';
 import 'bottom_sheet_route.dart';
 
+typedef PageTransitionsFunctionBuilder = Widget Function<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child);
+
 class MaterialWithModalsPageRoute<T> extends PageRoute<T>
     with ModalPageRouteMixin<T> {
   MaterialWithModalsPageRoute({
@@ -13,25 +20,7 @@ class MaterialWithModalsPageRoute<T> extends PageRoute<T>
     super.fullscreenDialog,
     super.allowSnapshotting = true,
     this.maintainState = true,
-  });
-
-  final WidgetBuilder builder;
-
-  @override
-  final bool maintainState;
-
-  @override
-  Widget buildContent(BuildContext context) => builder(context);
-}
-
-class CupertinoWithModalsPageRoute<T> extends PageRoute<T>
-    with ModalPageRouteMixin<T> {
-  CupertinoWithModalsPageRoute({
-    required this.builder,
-    super.settings,
-    super.fullscreenDialog,
-    super.allowSnapshotting = true,
-    this.maintainState = true,
+    this.transitionsBuilder,
   });
 
   @override
@@ -39,9 +28,11 @@ class CupertinoWithModalsPageRoute<T> extends PageRoute<T>
 
   final WidgetBuilder builder;
 
+  final PageTransitionsFunctionBuilder? transitionsBuilder;
+
   @override
-  PageTransitionsBuilder? get transitionsBuilderOverride =>
-      CupertinoPageTransitionsBuilder();
+  PageTransitionsFunctionBuilder? get transitionsBuilderOverride =>
+      transitionsBuilder ?? CupertinoRouteTransitionMixin.buildPageTransitions;
 
   @override
   Widget buildContent(BuildContext context) => builder(context);
@@ -89,15 +80,14 @@ mixin ModalPageRouteMixin<T> on PageRoute<T> {
 
   ModalSheetRoute? _nextModalRoute;
 
-  PageTransitionsBuilder? transitionsBuilderOverride;
+  PageTransitionsFunctionBuilder? transitionsBuilderOverride;
 
   @override
   bool canTransitionTo(TransitionRoute<dynamic> nextRoute) {
     // Don't perform outgoing animation if the next route is a fullscreen dialog.
     return (nextRoute is MaterialPageRoute && !nextRoute.fullscreenDialog) ||
         (nextRoute is CupertinoPageRoute && !nextRoute.fullscreenDialog) ||
-        (nextRoute is MaterialWithModalsPageRoute &&
-            !nextRoute.fullscreenDialog) ||
+        (nextRoute is ModalPageRouteMixin && !nextRoute.fullscreenDialog) ||
         (nextRoute is ModalSheetRoute);
   }
 
@@ -119,14 +109,14 @@ mixin ModalPageRouteMixin<T> on PageRoute<T> {
   @override
   Widget buildTransitions(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation, Widget child) {
-    final PageTransitionsBuilder transitionsBuilder;
+    final PageTransitionsFunctionBuilder transitionsBuilder;
     if (transitionsBuilderOverride != null) {
       transitionsBuilder = transitionsBuilderOverride!;
     } else {
       final theme = Theme.of(context);
-      transitionsBuilder =
-          theme.pageTransitionsTheme.builders[theme.platform] ??
-              ZoomPageTransitionsBuilder();
+      transitionsBuilder = theme.pageTransitionsTheme.builders[theme.platform]
+              ?.buildTransitions ??
+          const ZoomPageTransitionsBuilder().buildTransitions;
     }
     final nextRoute = _nextModalRoute;
     if (nextRoute != null) {
@@ -140,7 +130,7 @@ mixin ModalPageRouteMixin<T> on PageRoute<T> {
       }
     }
 
-    return transitionsBuilder.buildTransitions<T>(
+    return transitionsBuilder<T>(
         this, context, animation, secondaryAnimation, child);
   }
 
