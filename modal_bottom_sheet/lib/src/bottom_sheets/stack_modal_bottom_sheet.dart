@@ -191,18 +191,16 @@ class StackModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
   }
 
   static Widget buildSecondaryTransition(BuildContext context, Animation<double> secondaryAnimation, Widget child) {
-    final paddingTop = MediaQuery.of(context).padding.top;
+    final paddingTop = MediaQuery.paddingOf(context).top;
     final distanceWithScale = (paddingTop + _kPreviousPageVisibleOffset) * 0.9;
     final offsetY = secondaryAnimation.value * (paddingTop - distanceWithScale);
     final scale = 1 - secondaryAnimation.value / 10;
-    return Transform.translate(
-      offset: Offset(0, offsetY),
-      child: Transform.scale(
-        scale: scale,
-        child: child,
-        alignment: Alignment.topCenter,
-      ),
-    );
+
+    final transform = Matrix4.identity()
+      ..translate(0.0, offsetY)
+      ..scale(scale);
+
+    return Transform(transform: transform, alignment: Alignment.topCenter, child: child);
   }
 
   @override
@@ -246,34 +244,29 @@ class _CupertinoModalTransition extends StatelessWidget {
 
     final maskColor = _cupertinoMaskColor.resolveFrom(context);
 
-    return AnimatedBuilder(
-      animation: curvedAnimation,
-      builder: (context, _) {
-        final progress = curvedAnimation.value;
-        final yOffset = progress * paddingTop;
-        final scale = 1 - progress / 10;
-        final radius = progress == 0 ? 0.0 : (1 - progress) * startRoundCorner + progress * topRadius.x;
-        final trans = Matrix4.identity()
-          ..translate(0.0, yOffset)
-          ..scale(scale);
+    final progress = curvedAnimation.value;
+    final yOffset = progress * paddingTop;
+    final scale = 1 - progress / 10;
+    final radius = progress == 0 ? 0.0 : (1 - progress) * startRoundCorner + progress * topRadius.x;
+    final trans = Matrix4.identity()
+      ..translate(0.0, yOffset)
+      ..scale(scale);
 
-        return Transform(
-          transform: trans,
-          alignment: Alignment.topCenter,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(radius),
-            child: Stack(
-              children: [
-                body,
-                // mask
-                Positioned.fill(
-                  child: ColoredBox(color: maskColor.withOpacity(progress * 0.34)),
-                ),
-              ],
+    return Transform(
+      transform: trans,
+      alignment: Alignment.topCenter,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: Stack(
+          children: [
+            body,
+            // mask
+            Positioned.fill(
+              child: ColoredBox(color: maskColor.withOpacity(progress * 0.33)),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
