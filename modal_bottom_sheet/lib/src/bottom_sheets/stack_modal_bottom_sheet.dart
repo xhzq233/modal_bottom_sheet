@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
-import 'package:flutter/cupertino.dart' show CupertinoTheme;
-import 'package:flutter/material.dart'
-    show Colors, MaterialLocalizations, Theme;
+import 'package:flutter/cupertino.dart' show CupertinoColors, CupertinoTheme;
+import 'package:flutter/material.dart' show Colors, MaterialLocalizations;
 import 'package:flutter/widgets.dart';
 
 import '../../modal_bottom_sheet.dart';
@@ -14,8 +14,7 @@ import '../../modal_bottom_sheet.dart';
 const double _kPreviousPageVisibleOffset = 10;
 
 const Radius _kDefaultTopRadius = Radius.circular(12);
-const BoxShadow _kDefaultBoxShadow =
-    BoxShadow(blurRadius: 10, color: Colors.black12, spreadRadius: 5);
+const BoxShadow _kDefaultBoxShadow = BoxShadow(blurRadius: 10, color: Colors.black12, spreadRadius: 5);
 
 /// Cupertino Bottom Sheet Container
 ///
@@ -43,15 +42,13 @@ class _StackModalBottomSheetContainer extends StatelessWidget {
 
     final shadow = this.shadow ?? _kDefaultBoxShadow;
 
-    final backgroundColor = this.backgroundColor ??
-        CupertinoTheme.of(context).scaffoldBackgroundColor;
+    final backgroundColor = this.backgroundColor ?? CupertinoTheme.of(context).scaffoldBackgroundColor;
     Widget bottomSheetContainer = Padding(
       padding: EdgeInsets.only(top: topPadding),
       child: ClipRRect(
         borderRadius: BorderRadius.vertical(top: topRadius),
         child: Container(
-          decoration:
-              BoxDecoration(color: backgroundColor, boxShadow: [shadow]),
+          decoration: BoxDecoration(color: backgroundColor, boxShadow: [shadow]),
           width: double.infinity,
           child: MediaQuery.removePadding(
             context: context,
@@ -93,14 +90,9 @@ Future<T?> showStackModalBottomSheet<T>({
 }) async {
   assert(debugCheckHasMediaQuery(context));
   assert(insidePageRoute != null || builder != null);
-  final hasMaterialLocalizations =
-      Localizations.of<MaterialLocalizations>(context, MaterialLocalizations) !=
-          null;
-  final barrierLabel = hasMaterialLocalizations
-      ? MaterialLocalizations.of(context).modalBarrierDismissLabel
-      : '';
-  final result =
-      await Navigator.of(context, rootNavigator: useRootNavigator).push(
+  final hasMaterialLocalizations = Localizations.of<MaterialLocalizations>(context, MaterialLocalizations) != null;
+  final barrierLabel = hasMaterialLocalizations ? MaterialLocalizations.of(context).modalBarrierDismissLabel : '';
+  final result = await Navigator.of(context, rootNavigator: useRootNavigator).push(
     StackModalBottomSheetRoute<T>(
       builder: builder,
       insideNavigator: insideNavigator,
@@ -195,12 +187,10 @@ class StackModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
       // performance optimization
       return buildSecondaryTransition(context, secondaryAnimation, child);
     }
-    return super
-        .buildTransitions(context, animation, secondaryAnimation, child);
+    return super.buildTransitions(context, animation, secondaryAnimation, child);
   }
 
-  static Widget buildSecondaryTransition(BuildContext context,
-      Animation<double> secondaryAnimation, Widget child) {
+  static Widget buildSecondaryTransition(BuildContext context, Animation<double> secondaryAnimation, Widget child) {
     final paddingTop = MediaQuery.of(context).padding.top;
     final distanceWithScale = (paddingTop + _kPreviousPageVisibleOffset) * 0.9;
     final offsetY = secondaryAnimation.value * (paddingTop - distanceWithScale);
@@ -216,14 +206,12 @@ class StackModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
   }
 
   @override
-  Widget getPreviousRouteTransition(
-      BuildContext context, Animation<double> secondAnimation, Widget child) {
+  Widget getPreviousRouteTransition(BuildContext context, Animation<double> secondAnimation, Widget child) {
     return _CupertinoModalTransition(
       secondaryAnimation: secondAnimation,
       body: child,
       animationCurve: previousRouteAnimationCurve,
       topRadius: topRadius,
-      backgroundColor: transitionBackgroundColor ?? Colors.black,
     );
   }
 }
@@ -231,52 +219,57 @@ class StackModalBottomSheetRoute<T> extends ModalSheetRoute<T> {
 class _CupertinoModalTransition extends StatelessWidget {
   final Animation<double> secondaryAnimation;
   final Radius topRadius;
-  final Curve? animationCurve;
-  final Color backgroundColor;
+  final CurvedAnimation curvedAnimation;
+
+  static const _cupertinoMaskColor = CupertinoColors.systemGrey3;
 
   final Widget body;
 
-  const _CupertinoModalTransition({
+  _CupertinoModalTransition({
     Key? key,
     required this.secondaryAnimation,
     required this.body,
     required this.topRadius,
-    this.backgroundColor = Colors.black,
-    this.animationCurve,
-  }) : super(key: key);
+    Curve? animationCurve,
+  })  : curvedAnimation = CurvedAnimation(parent: secondaryAnimation, curve: animationCurve ?? Curves.easeOut),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    var startRoundCorner = 0.0;
-    final paddingTop = MediaQuery.of(context).padding.top;
-    if (Theme.of(context).platform == TargetPlatform.iOS && paddingTop > 20) {
+    double startRoundCorner = 0.0;
+    final paddingTop = MediaQuery.paddingOf(context).top;
+    // if (Theme.of(context).platform == TargetPlatform.iOS && paddingTop > 20) {
+    if (Platform.isIOS && paddingTop > 20) {
       startRoundCorner = 38.5;
       //https://kylebashour.com/posts/finding-the-real-iphone-x-corner-radius
     }
 
-    final curvedAnimation = CurvedAnimation(
-      parent: secondaryAnimation,
-      curve: animationCurve ?? Curves.easeOut,
-    );
+    final maskColor = _cupertinoMaskColor.resolveFrom(context);
 
     return AnimatedBuilder(
       animation: curvedAnimation,
-      child: body,
-      builder: (context, child) {
+      builder: (context, _) {
         final progress = curvedAnimation.value;
         final yOffset = progress * paddingTop;
         final scale = 1 - progress / 10;
-        final radius = progress == 0
-            ? 0.0
-            : (1 - progress) * startRoundCorner + progress * topRadius.x;
-        return Transform.translate(
-          offset: Offset(0, yOffset),
-          child: Transform.scale(
-            scale: scale,
-            alignment: Alignment.topCenter,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(radius),
-              child: child!,
+        final radius = progress == 0 ? 0.0 : (1 - progress) * startRoundCorner + progress * topRadius.x;
+        final trans = Matrix4.identity()
+          ..translate(0.0, yOffset)
+          ..scale(scale);
+
+        return Transform(
+          transform: trans,
+          alignment: Alignment.topCenter,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(radius),
+            child: Stack(
+              children: [
+                body,
+                // mask
+                Positioned.fill(
+                  child: ColoredBox(color: maskColor.withOpacity(progress * 0.34)),
+                ),
+              ],
             ),
           ),
         );
